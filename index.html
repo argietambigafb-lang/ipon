@@ -14,6 +14,7 @@ h1{font-size:1.9rem;margin:8px 0 2px}h2{font-size:1.15rem;margin:0 0 10px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin:14px 0}
 input,select,button{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
 button{cursor:pointer;background:var(--green);color:#fff;border-color:var(--green)}
+button:disabled{opacity:.6;cursor:wait}
 button.alt{background:#fff;color:var(--ink);border-color:var(--line)}
 button.bad{background:var(--red);border-color:var(--red)}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #e0b64a;outline-offset:1px}
@@ -36,7 +37,7 @@ th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertic
 <h1>Ipon Tracker</h1>
 <p class="muted">See who has paid and who hasn't.</p>
 
-<div class="warn">DEMO: data is saved only in this browser (localStorage), so other members can't see it on their own devices. To share it across devices, connect it to Firebase/Supabase.</div>
+<div id="cfgWarn" class="warn hidden" role="alert"><b>Hindi pa naka-connect sa Supabase.</b> Ilagay ang Project URL at anon key sa <code>SUPABASE_URL</code> at <code>SUPABASE_KEY</code> sa ibaba ng file na ito.</div>
 
 <!-- LOGIN -->
 <div id="loginView" class="card">
@@ -47,19 +48,19 @@ th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertic
       <b>Account pending</b><br>Your account was created. Please wait for the admin to approve it, then log in.
       <div class="row"><button class="alt" id="noticeOk">OK</button></div>
     </div>
-    <div class="row"><input id="u" placeholder="Username" autocomplete="username"></div>
-    <div class="row"><input id="p" type="password" placeholder="Password" autocomplete="current-password"></div>
+    <div class="row"><input id="u" placeholder="Username" aria-label="Username" autocomplete="username"></div>
+    <div class="row"><input id="p" type="password" placeholder="Password" aria-label="Password" autocomplete="current-password"></div>
     <div class="row"><button id="loginBtn">Log in</button></div>
-    <p id="loginMsg" class="muted"></p>
+    <p id="loginMsg" class="muted" role="status"></p>
     <div class="row"><button class="alt" id="showReg">Create account</button></div>
   </div>
   <!-- CREATE ACCOUNT FORM (only this shows when creating) -->
   <div id="regBox" class="hidden">
     <h2>Create account</h2>
-    <div class="row"><input id="regU" placeholder="Choose a username" autocomplete="off"></div>
-    <div class="row"><input id="regP" type="password" placeholder="Choose a password (min 4)" autocomplete="new-password"></div>
+    <div class="row"><input id="regU" placeholder="Choose a username" aria-label="Choose a username" autocomplete="off"></div>
+    <div class="row"><input id="regP" type="password" placeholder="Choose a password (min 6)" aria-label="Choose a password" autocomplete="new-password"></div>
     <div class="row"><button id="regBtn">Sign up</button> <button class="alt" id="backLogin">Back to log in</button></div>
-    <p id="regMsg" class="muted"></p>
+    <p id="regMsg" class="muted" role="status"></p>
   </div>
 </div>
 
@@ -69,25 +70,26 @@ th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertic
     <div>Logged in as: <b id="who"></b> <span id="roleTag" class="muted"></span></div>
     <button class="alt" id="logoutBtn">Log out</button>
   </div>
+  <div id="appMsg" class="warn hidden" role="alert"></div>
 
   <div class="card">
     <h2>Total savings (confirmed only)</h2>
     <div class="total" id="total">₱0</div>
-    <div class="row">
-      <label class="muted" for="period">Month:</label>
-      <select id="period"></select>
-    </div>
   </div>
 
   <div class="card" id="payBox">
     <h2>Make a deposit</h2>
     <div class="row">
-      <input id="amt" type="number" min="1" placeholder="Amount (₱)">
-      <input id="ref" placeholder="GCash reference no. (optional)">
+      <label class="muted" for="period">Para sa buwan ng:</label>
+      <select id="period"></select>
+    </div>
+    <div class="row">
+      <input id="amt" type="number" min="1" max="10000000" step="1" inputmode="numeric" placeholder="Amount (₱)" aria-label="Amount in pesos">
+      <input id="ref" maxlength="40" placeholder="GCash reference no. (optional)" aria-label="GCash reference number">
       <button id="payBtn">I've paid</button>
       <button class="alt hidden" id="payCancel">Cancel</button>
     </div>
-    <p id="payMsg" class="muted"></p>
+    <p id="payMsg" class="muted" role="status"></p>
   </div>
 
   <div class="card hidden" id="setBox">
@@ -98,7 +100,7 @@ th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertic
         <option value="amount">Target amount (₱)</option>
         <option value="count">Number of deposits</option>
       </select>
-      <input id="setTarget" type="number" min="0" placeholder="e.g. 50000 or 5">
+      <input id="setTarget" type="number" min="0" step="1" placeholder="e.g. 50000 or 5" aria-label="Goal value">
       <button id="setSave">Save settings</button>
     </div>
     <p class="muted" id="setMsg">A member becomes "Paid" only after reaching the goal. Set 0 for no goal.</p>
@@ -107,8 +109,8 @@ th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertic
   <div class="card hidden" id="acctBox">
     <h2>Accounts (admin)</h2>
     <div class="row">
-      <input id="newU" placeholder="Username" autocomplete="off">
-      <input id="newP" type="text" placeholder="Password (min 4)" autocomplete="off">
+      <input id="newU" placeholder="Username" aria-label="New member username" autocomplete="off">
+      <input id="newP" type="text" placeholder="Password (min 6)" aria-label="New member password" autocomplete="off">
       <button id="acctSave">Add / update</button>
     </div>
     <p class="muted" id="acctMsg">New username = new member. Existing username = new password.</p>
@@ -146,82 +148,142 @@ th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertic
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* ===== DATA =====
-   DEMO ONLY: stored in localStorage. In the real version, load()/save() are replaced by
-   Firebase/Supabase and the admin-only rules are enforced by security rules. */
-const UKEY="ipon_users_v1";
-let USERS=[{u:"admin",p:"admin123",admin:true},{u:"argie",p:"1234"}]; // default accounts; admin adds more in the app
-function saveUsers(){try{localStorage.setItem(UKEY,JSON.stringify(USERS))}catch(e){}}
-const KEY="ipon_demo_v1";
+/* ===== SUPABASE CONFIG =====
+   Ilagay dito ang Project URL at ang "anon public" key (Project Settings > API).
+   Ligtas ang anon key sa public page dahil ang security rules (RLS) ng database ang nagbabantay.
+   HUWAG ilagay dito ang service_role key o ang database password. */
+const SUPABASE_URL="https://ksbuomwqjorfytcmijtz.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzYnVvbXdxam9yZnl0Y21panR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwMDc3MDIsImV4cCI6MjEwNzU4MzcwMn0.YYSGJcJIFVLbOs1DY7JLMiE_--5jxA2EOVvfF4guB_E";
+
+const MAIL="@ipon-app.com"; // username -> pekeng email para sa Supabase Auth
+const configured=!/^PASTE/.test(SUPABASE_URL)&&!/^PASTE/.test(SUPABASE_KEY)&&!!window.supabase;
+const db=configured?window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
+
 const $=id=>document.getElementById(id);
 const peso=n=>"₱"+Number(n).toLocaleString("en-PH");
-let me=null;
-let payments=[]; // {id,user,period,amount,ref,status:"pending"|"paid"|"denied",date}
+/* Escape any user-provided text before putting it in innerHTML (prevents XSS) */
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtDate=d=>{const x=new Date(d);return isNaN(x)?esc(d):x.toLocaleDateString("en-PH",{year:"numeric",month:"short",day:"numeric"})};
+const USERRE=/^[a-z0-9_.-]{2,30}$/;
 
-const SKEY="ipon_settings_v1";
-let settings={mode:"amount",target:0}; // shared goal for all members
-function load(){
-  try{payments=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){payments=[]}
-  try{settings=JSON.parse(localStorage.getItem(SKEY)||"null")||settings}catch(e){}
-  try{const u=JSON.parse(localStorage.getItem(UKEY)||"null");if(u&&u.length)USERS=u}catch(e){}
+let me=null;            // {id,u,admin}
+let PROFILES=[];        // {id,username,role,approved}
+let payments=[];        // {id,user_id,user,period,amount,ref,status,date}
+let settings={mode:"amount",target:0};
+let pollT=null;
+
+const members=()=>PROFILES.filter(x=>x.role==="member"&&x.approved).map(x=>({id:x.id,u:x.username}));
+const pendingUsers=()=>PROFILES.filter(x=>!x.approved).map(x=>({id:x.id,u:x.username}));
+
+/* Small message banner for errors/info inside the app */
+let noteT=null;
+function note(t){
+  const b=$("appMsg");b.textContent=t;b.classList.remove("hidden");
+  clearTimeout(noteT);noteT=setTimeout(()=>b.classList.add("hidden"),6000);
 }
-function save(){try{localStorage.setItem(KEY,JSON.stringify(payments))}catch(e){}}
 
-/* Months: 6 months starting this month */
+/* ===== DATA (Supabase) ===== */
+async function fetchAll(){
+  const [pr,pay,st]=await Promise.all([
+    db.from("profiles").select("id,username,role,approved").order("username"),
+    db.from("payments_view").select("*").order("created_at",{ascending:true}),
+    db.from("settings").select("mode,target").eq("id",1).maybeSingle()
+  ]);
+  const err=pr.error||pay.error||st.error;
+  if(err)throw err;
+  PROFILES=pr.data||[];
+  payments=(pay.data||[]).map(p=>({id:p.id,user_id:p.user_id,user:p.username,period:p.period,amount:p.amount,ref:p.ref,status:p.status,date:p.created_at}));
+  if(st.data)settings=st.data;
+}
+async function refresh(){
+  if(!me)return;
+  try{await fetchAll()}catch(e){note("Hindi ma-load ang data: "+(e.message||e));return}
+  fillFilter();render();
+}
+function startPoll(){
+  clearInterval(pollT);
+  pollT=setInterval(()=>{if(me&&!document.hidden)refresh()},20000); // auto-update kada 20 segundo
+}
+
+/* Months: 3 months back until 3 months ahead (so a missed month can still be paid) */
 function periods(){
   const out=[],d=new Date();
-  for(let i=0;i<6;i++){
+  for(let i=-3;i<=3;i++){
     const x=new Date(d.getFullYear(),d.getMonth()+i,1);
     out.push(x.toLocaleString("en-PH",{month:"long",year:"numeric"}));
   }
   return out;
 }
-const members=()=>USERS.filter(x=>!x.admin&&!x.pending);
 
-function login(){
-  load();
-  const f=USERS.find(x=>x.u===$("u").value.trim().toLowerCase()&&x.p===$("p").value);
-  if(!f){$("loginMsg").textContent="Wrong username or password.";return}
-  if(f.pending){$("loginMsg").textContent="Your account is waiting for the admin's approval.";return}
-  me=f;load();
+/* ===== LOGIN / LOGOUT ===== */
+async function login(){
+  if(!db)return;
+  const u=$("u").value.trim().toLowerCase(),p=$("p").value;
+  if(!u||!p){$("loginMsg").textContent="Enter your username and password.";return}
+  $("loginBtn").disabled=true;$("loginMsg").textContent="Logging in...";
+  const {data,error}=await db.auth.signInWithPassword({email:u+MAIL,password:p});
+  $("loginBtn").disabled=false;
+  if(error){$("loginMsg").textContent=error.status===400?"Wrong username or password.":"Hindi maka-login: "+error.message;return}
+  await enterApp(data.user);
+}
+async function enterApp(user){
+  const {data:prof,error}=await db.from("profiles").select("id,username,role,approved").eq("id",user.id).maybeSingle();
+  if(error||!prof){await db.auth.signOut();$("loginMsg").textContent="Hindi mahanap ang account mo. Subukan ulit.";return}
+  if(!prof.approved){await db.auth.signOut();$("loginMsg").textContent="Your account is waiting for the admin's approval.";return}
+  me={id:prof.id,u:prof.username,admin:prof.role==="admin"};
   $("loginView").classList.add("hidden");$("appView").classList.remove("hidden");
+  $("loginMsg").textContent="";$("p").value="";
   $("who").textContent=me.u;$("roleTag").textContent=me.admin?"(Treasurer/Admin)":"(Member)";
   $("payBox").classList.toggle("hidden",!!me.admin);
   $("actHead").textContent=me.admin?"Action":"";$("histAct").textContent=me.admin?"Action":"";
   $("setBox").classList.toggle("hidden",!me.admin);$("acctBox").classList.toggle("hidden",!me.admin);
+  const s=$("period");s.innerHTML="";periods().forEach(x=>s.add(new Option(x,x)));
+  s.selectedIndex=3; // current month
+  try{await fetchAll()}catch(e){note("Hindi ma-load ang data: "+(e.message||e))}
   $("setMode").value=settings.mode;$("setTarget").value=settings.target||"";
-  const s=$("period");s.innerHTML="";periods().forEach(p=>s.add(new Option(p,p)));
-  fillFilter();
-  render();
+  fillFilter();render();startPoll();
+}
+async function logout(){
+  clearInterval(pollT);clearTimeout(armT);pendingRm=null;pendingDel=null;endConfirm();
+  $("payMsg").textContent="";
+  me=null;PROFILES=[];payments=[];
+  if(db)await db.auth.signOut();
+  $("appView").classList.add("hidden");$("loginView").classList.remove("hidden");
+  $("p").value="";$("loginMsg").textContent="";
 }
 function fillFilter(){
   const hf=$("histFilter"),cur=hf.value;hf.innerHTML="";
   hf.add(new Option("All members","all"));members().forEach(m=>hf.add(new Option(m.u,m.u)));
   if([...hf.options].some(o=>o.value===cur))hf.value=cur;
 }
-/* Admin: manage accounts. In the real version, Firebase/Supabase Authentication does this. */
+
+/* ===== ADMIN: accounts ===== */
 let pendingRm=null;
 function renderAccts(){
-  const pend=USERS.filter(x=>x.pending);
+  const pend=pendingUsers();
   $("pendHead").textContent=pend.length?pend.length+" waiting for approval:":"";
-  $("pendList").innerHTML=pend.map(m=>`<tr><td><b>${m.u}</b></td><td style="text-align:right"><button data-ap="${m.u}">Approve</button> <button class="bad" data-rj="${m.u}">Reject</button></td></tr>`).join("");
-  $("acctList").innerHTML=members().map(m=>`<tr><td>${m.u}</td><td style="text-align:right"><button class="bad" data-r="${m.u}">${pendingRm===m.u?"Sure? Click again":"Remove"}</button></td></tr>`).join("")||'<tr><td class="muted">No members yet.</td></tr>';
+  $("pendList").innerHTML=pend.map(m=>`<tr><td><b>${esc(m.u)}</b></td><td style="text-align:right"><button data-ap="${esc(m.id)}">Approve</button> <button class="bad" data-rj="${esc(m.id)}">Reject</button></td></tr>`).join("");
+  $("acctList").innerHTML=members().map(m=>`<tr><td>${esc(m.u)}</td><td style="text-align:right"><button class="bad" data-r="${esc(m.id)}">${pendingRm===m.id?"Sure? Buburahin din ang deposits niya":"Remove"}</button></td></tr>`).join("")||'<tr><td class="muted">No members yet.</td></tr>';
 }
-function logout(){endConfirm();$("payMsg").textContent="";me=null;$("appView").classList.add("hidden");$("loginView").classList.remove("hidden");$("p").value="";$("loginMsg").textContent=""}
+/* "Click again to confirm" buttons reset by themselves after 3 seconds */
+let armT=null;
+function arm(){clearTimeout(armT);armT=setTimeout(()=>{pendingRm=null;pendingDel=null;if(me)render()},3000)}
 
-/* Deposit flow: 1) press "I've paid" -> review, 2) press "Confirm" -> processes */
+/* ===== DEPOSIT FLOW: 1) "I've paid" -> review, 2) "Confirm" -> send ===== */
 let confirming=false;
 function endConfirm(){
   confirming=false;$("payBtn").textContent="I've paid";$("payCancel").classList.add("hidden");
   $("amt").disabled=false;$("ref").disabled=false;$("period").disabled=false;
 }
-function pay(){
+async function pay(){
+  if(!me||me.admin)return;
   const a=Number($("amt").value);
   if(!confirming){
-    if(!a||a<=0){$("payMsg").textContent="Enter a valid amount.";return}
+    if(!Number.isInteger(a)||a<=0||a>10000000){$("payMsg").textContent="Enter a valid whole-peso amount (₱1 to ₱10,000,000).";return}
     const ref=$("ref").value.trim();
-    let msg="Deposit "+peso(a)+" for "+$("period").value+(ref?" (Ref: "+ref+")":"")+"? Press Confirm to send it to the treasurer.";
+    let msg="Deposit "+peso(a)+" for "+$("period").value+(ref?" (Ref: "+ref+")":"")+"? Press Confirm to send it to the treasurer."; // set via textContent, so safe
     const T=Number(settings.target)||0;
     if(T>0){
       const mine=payments.filter(p=>p.user===me.u&&p.status!=="denied");
@@ -235,17 +297,35 @@ function pay(){
     $("amt").disabled=true;$("ref").disabled=true;$("period").disabled=true;
     return;
   }
-  payments.push({id:Date.now(),user:me.u,period:$("period").value,amount:a,ref:$("ref").value.trim(),status:"pending",date:new Date().toLocaleDateString("en-PH")});
-  save();$("amt").value="";$("ref").value="";
+  $("payBtn").disabled=true;
+  const {error}=await db.from("payments").insert({user_id:me.id,period:$("period").value,amount:a,ref:$("ref").value.trim().slice(0,40)||null,status:"pending"});
+  $("payBtn").disabled=false;
+  if(error){$("payMsg").textContent="Hindi na-send ang deposit: "+error.message;return}
+  $("amt").value="";$("ref").value="";
   endConfirm();
   $("payMsg").textContent="Done! Your deposit is sent. Waiting for the treasurer to confirm.";
-  render();
+  await refresh();
 }
-/* Admin only. In the real version, security rules enforce this. */
-function confirmPay(id){if(!me.admin)return;const p=payments.find(x=>x.id===id);if(p){p.status="paid";save();render()}}
-function denyPay(id){if(!me.admin)return;const p=payments.find(x=>x.id===id);if(p){p.status="denied";save();render()}}
+
+/* ===== ADMIN ACTIONS (rules are enforced by the database, not by this page) ===== */
+async function setStatus(id,status){
+  if(!me||!me.admin)return;
+  const {error}=await db.from("payments").update({status}).eq("id",id);
+  if(error)note("Hindi na-update: "+error.message);
+  await refresh();
+}
 let pendingDel=null; // two clicks to delete (no confirm() popup)
-function removePay(id){if(!me.admin)return;payments=payments.filter(x=>x.id!==id);save();render()}
+async function removePay(id){
+  if(!me||!me.admin)return;
+  const {error}=await db.from("payments").delete().eq("id",id);
+  if(error)note("Hindi nabura: "+error.message);
+  await refresh();
+}
+async function deleteUser(id){
+  const {error}=await db.rpc("admin_delete_user",{uid:id});
+  if(error){note("Hindi nabura ang account: "+error.message);return false}
+  return true;
+}
 
 /* Funny messages for overpayment, chosen by how big the extra is compared to the goal */
 function funnyExtra(ex){
@@ -259,27 +339,27 @@ function funnyExtra(ex){
   else j="naka-jackpot ka ba? Libre mo na kami. 💸";
   return "🤑 "+t+" extra · "+j;
 }
-let warnKey=null; // remembers that we already warned about an overpayment
+
+/* ===== RENDER ===== */
 function render(){
-  const per=$("period").value;
-  const paidTotal=payments.filter(p=>p.status==="paid").reduce((s,p)=>s+p.amount,0);
+  if(!me)return;
+  const mem=members();
+  const names=new Set(mem.map(m=>m.u));
+  const paidTotal=payments.filter(p=>p.status==="paid"&&names.has(p.user)).reduce((s,p)=>s+p.amount,0);
   $("total").textContent=peso(paidTotal);
   if(me.admin)renderAccts();
 
   const T0=Number(settings.target)||0;
   $("goalText").textContent=T0>0?"Goal per member: "+(settings.mode==="amount"?peso(T0):T0+(T0===1?" deposit":" deposits")):"No goal set yet.";
   // Members list (no ref no. here, it's in History)
-  const rows=members().map(m=>{
-    // Pending deposits of this member from ALL months, so Confirm/Deny always shows
+  const rows=mem.map(m=>{
     const pend=payments.filter(p=>p.user===m.u&&p.status==="pending");
     let act="";
-    // Total paid and number of deposits across ALL months (confirmed only; pending shown separately)
     const all=payments.filter(p=>p.user===m.u);
     const conf=all.filter(p=>p.status==="paid");
     const totalPaid=conf.reduce((s,p)=>s+p.amount,0);
-    const nPend=all.filter(p=>p.status==="pending").length;
+    const nPend=pend.length;
     const times=conf.length+(nPend?` (+${nPend} pending)`:"");
-    // Status based on the admin's goal
     const T=Number(settings.target)||0,byAmt=settings.mode==="amount";
     const left=T>0?Math.max(0,byAmt?T-totalPaid:T-conf.length):0;
     const leftTxt=byAmt?peso(left)+" left":left+(left===1?" deposit left":" deposits left");
@@ -290,74 +370,133 @@ function render(){
     else if(all.some(p=>p.status==="denied")){st="🚫 Denied";cls="none";sub=T>0?leftTxt:""}
     else{st="❌ Not yet paid";cls="none";sub=T>0?leftTxt:""}
     if(conf.length>0&&nPend&&sub)sub+=" · "+nPend+" pending";
-    if(me.admin&&pend.length)act=pend.map(p=>`<button data-c="${p.id}">Confirm</button> <button class="bad" data-n="${p.id}">Deny</button>`).join(" ");
-    return `<tr><td>${m.u}</td><td>${peso(totalPaid)}</td><td>${times}</td><td><span class="st ${cls}">${st}</span>${sub?`<br><span class="muted">${sub}</span>`:""}</td><td>${act}</td></tr>`;
+    if(me.admin&&pend.length)act=pend.map(p=>`<button data-c="${p.id}" aria-label="Confirm ${peso(p.amount)} from ${esc(m.u)}">Confirm ${peso(p.amount)}</button> <button class="bad" data-n="${p.id}" aria-label="Deny ${peso(p.amount)} from ${esc(m.u)}">Deny</button>`).join(" ");
+    return `<tr><td>${esc(m.u)}</td><td>${peso(totalPaid)}</td><td>${times}</td><td><span class="st ${cls}">${st}</span>${sub?`<br><span class="muted">${sub}</span>`:""}</td><td>${act}</td></tr>`;
   });
   $("list").innerHTML=rows.join("");
 
   // History with filter per member
   const f=$("histFilter").value||"all";
-  const shown=payments.filter(p=>f==="all"||p.user===f);
+  const shown=payments.filter(p=>names.has(p.user)&&(f==="all"||p.user===f));
   const sum=shown.filter(p=>p.status==="paid").reduce((s,p)=>s+p.amount,0);
   $("histSum").textContent=(f==="all"?"All members":f)+": saved "+peso(sum)+" (confirmed only)";
   const h=[...shown].reverse().map(p=>{
     const s=p.status==="paid"?'<span class="st paid">✅ Paid</span>':p.status==="denied"?'<span class="st none">🚫 Denied</span>':'<span class="st pend">⏳ Pending</span>';
     const del=me.admin?`<button class="bad" data-d="${p.id}">${pendingDel===p.id?"Sure? Click again":"Delete"}</button>`:"";
-    return `<tr><td>${p.date}</td><td>${p.user}</td><td>${p.period}</td><td>${peso(p.amount)}</td><td>${p.ref||"—"}</td><td>${s}</td><td>${del}</td></tr>`;
+    // Ref no. is private (the database only returns it to the admin and the depositor)
+    const ref=p.ref?esc(p.ref):(me.admin||p.user===me.u?"—":"•••");
+    return `<tr><td>${fmtDate(p.date)}</td><td>${esc(p.user)}</td><td>${esc(p.period)}</td><td>${peso(p.amount)}</td><td>${ref}</td><td>${s}</td><td>${del}</td></tr>`;
   });
   $("hist").innerHTML=h.length?h.join(""):'<tr><td colspan="7" class="muted">No deposits yet.</td></tr>';
 }
 
-$("setSave").onclick=()=>{
+/* ===== EVENTS ===== */
+$("setSave").onclick=async()=>{
   if(!me||!me.admin)return;
   const t=Number($("setTarget").value||0);
-  if(!(t>=0)){$("setMsg").textContent="Enter a valid number.";return}
-  settings={mode:$("setMode").value,target:t};
-  try{localStorage.setItem(SKEY,JSON.stringify(settings))}catch(e){}
+  if(!Number.isInteger(t)||t<0){$("setMsg").textContent="Enter a valid whole number.";return}
+  const {error}=await db.from("settings").update({mode:$("setMode").value,target:t}).eq("id",1);
+  if(error){$("setMsg").textContent="Hindi na-save: "+error.message;return}
   $("setMsg").textContent="Saved. Everyone now sees the new goal.";
-  render();
+  await refresh();
 };
-$("acctSave").onclick=()=>{
+$("acctSave").onclick=async()=>{
   if(!me||!me.admin)return;
   const u=$("newU").value.trim().toLowerCase(),p=$("newP").value;
-  if(!/^[a-z0-9_.-]+$/.test(u)){$("acctMsg").textContent="Username: letters, numbers, _ . - only (no spaces).";return}
-  if(p.length<4){$("acctMsg").textContent="Password must be at least 4 characters.";return}
-  const ex=USERS.find(x=>x.u===u);
-  if(ex){ex.p=p;$("acctMsg").textContent="Password updated for "+u+"."}
-  else{USERS.push({u:u,p:p});$("acctMsg").textContent="Added "+u+"."}
-  saveUsers();$("newU").value="";$("newP").value="";fillFilter();render();
+  if(!USERRE.test(u)){$("acctMsg").textContent="Username: 2-30 characters, letters, numbers, _ . - only (no spaces).";return}
+  if(p.length<6){$("acctMsg").textContent="Password must be at least 6 characters.";return}
+  $("acctSave").disabled=true;
+  try{
+    const ex=PROFILES.find(x=>x.username===u);
+    if(ex){
+      const {error}=await db.rpc("admin_set_password",{uid:ex.id,new_password:p});
+      if(error)throw error;
+      $("acctMsg").textContent="Password updated for "+u+".";
+    }else{
+      // separate client so the admin stays logged in while the new account is created
+      const tmp=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:"ipon-tmp"}});
+      const {error}=await tmp.auth.signUp({email:u+MAIL,password:p});
+      if(error)throw error;
+      const {error:e2}=await db.from("profiles").update({approved:true}).eq("username",u);
+      if(e2)throw e2;
+      $("acctMsg").textContent="Added "+u+".";
+    }
+    $("newU").value="";$("newP").value="";
+  }catch(e){
+    $("acctMsg").textContent=/registered|exists/i.test(e.message||"")?"That username is already taken.":"Hindi na-save: "+(e.message||e);
+  }
+  $("acctSave").disabled=false;
+  await refresh();
 };
 function showRegister(){$("loginForm").classList.add("hidden");$("regBox").classList.remove("hidden");$("regMsg").textContent="";$("loginMsg").textContent="";$("pendingNotice").classList.add("hidden")}
 function showLogin(){$("regBox").classList.add("hidden");$("loginForm").classList.remove("hidden")}
 $("showReg").onclick=showRegister;
 $("backLogin").onclick=showLogin;
 $("noticeOk").onclick=()=>$("pendingNotice").classList.add("hidden");
-$("regBtn").onclick=()=>{
-  load();
+$("regBtn").onclick=async()=>{
+  if(!db)return;
   const u=$("regU").value.trim().toLowerCase(),p=$("regP").value;
-  if(!/^[a-z0-9_.-]+$/.test(u)){$("regMsg").textContent="Username: letters, numbers, _ . - only (no spaces).";return}
-  if(p.length<4){$("regMsg").textContent="Password must be at least 4 characters.";return}
-  if(USERS.some(x=>x.u===u)){$("regMsg").textContent="That username is already taken.";return}
-  USERS.push({u:u,p:p,pending:true});saveUsers();
-  $("regU").value="";$("regP").value="";
-  showLogin();$("pendingNotice").classList.remove("hidden"); // back to log in + pending alert box
+  if(!USERRE.test(u)){$("regMsg").textContent="Username: 2-30 characters, letters, numbers, _ . - only (no spaces).";return}
+  if(p.length<6){$("regMsg").textContent="Password must be at least 6 characters.";return}
+  $("regBtn").disabled=true;$("regMsg").textContent="Creating account...";
+  const {data,error}=await db.auth.signUp({email:u+MAIL,password:p});
+  $("regBtn").disabled=false;
+  if(error){$("regMsg").textContent=/registered|exists/i.test(error.message)?"That username is already taken.":"Hindi nagawa ang account: "+error.message;return}
+  if(data.user&&data.user.identities&&data.user.identities.length===0){$("regMsg").textContent="That username is already taken.";return}
+  await db.auth.signOut(); // new accounts must wait for the admin's approval
+  $("regU").value="";$("regP").value="";$("regMsg").textContent="";
+  showLogin();$("pendingNotice").classList.remove("hidden");
 };
 $("loginBtn").onclick=login;
-$("p").onkeydown=e=>{if(e.key==="Enter")login()};
 $("logoutBtn").onclick=logout;
 $("payBtn").onclick=pay;
 $("payCancel").onclick=()=>{endConfirm();$("payMsg").textContent="Cancelled."};
 $("period").onchange=render;
 $("histFilter").onchange=render;
-document.addEventListener("click",e=>{
+document.addEventListener("click",async e=>{
   const c=e.target.dataset;
-  if(c.c)confirmPay(Number(c.c));
-  if(c.n)denyPay(Number(c.n));
-  if(c.ap&&me&&me.admin){const x=USERS.find(y=>y.u===c.ap);if(x){delete x.pending;saveUsers();fillFilter();render()}}
-  if(c.rj&&me&&me.admin){USERS=USERS.filter(y=>y.u!==c.rj);saveUsers();render()}
-  if(c.r){if(pendingRm===c.r){pendingRm=null;USERS=USERS.filter(x=>x.admin||x.u!==c.r);saveUsers();fillFilter();render()}else{pendingRm=c.r;render()}}
-  if(c.d){const id=Number(c.d);if(pendingDel===id){pendingDel=null;removePay(id)}else{pendingDel=id;render()}}
+  if(!me||!c)return;
+  if(c.c&&me.admin)await setStatus(Number(c.c),"paid");
+  if(c.n&&me.admin)await setStatus(Number(c.n),"denied");
+  if(c.ap&&me.admin){
+    const {error}=await db.from("profiles").update({approved:true}).eq("id",c.ap);
+    if(error)note("Hindi na-approve: "+error.message);
+    await refresh();
+  }
+  if(c.rj&&me.admin){if(await deleteUser(c.rj))await refresh()}
+  if(c.r&&me.admin){
+    if(pendingRm===c.r){
+      pendingRm=null;clearTimeout(armT);
+      if(await deleteUser(c.r))await refresh(); // also removes their deposits (cascade)
+    }else{pendingRm=c.r;pendingDel=null;arm();render()}
+  }
+  if(c.d&&me.admin){
+    const id=Number(c.d);
+    if(pendingDel===id){pendingDel=null;clearTimeout(armT);await removePay(id)}
+    else{pendingDel=id;pendingRm=null;arm();render()}
+  }
 });
+/* Press Enter to submit */
+$("u").onkeydown=e=>{if(e.key==="Enter")$("p").focus()};
+$("p").onkeydown=e=>{if(e.key==="Enter")login()};
+$("regU").onkeydown=e=>{if(e.key==="Enter")$("regP").focus()};
+$("regP").onkeydown=e=>{if(e.key==="Enter")$("regBtn").click()};
+$("newU").onkeydown=e=>{if(e.key==="Enter")$("newP").focus()};
+$("newP").onkeydown=e=>{if(e.key==="Enter")$("acctSave").click()};
+$("amt").onkeydown=$("ref").onkeydown=e=>{if(e.key==="Enter")pay()};
+
+/* ===== START ===== */
+(async function init(){
+  if(!configured){
+    $("cfgWarn").classList.remove("hidden");
+    ["loginBtn","regBtn"].forEach(id=>$(id).disabled=true);
+    return;
+  }
+  try{
+    const {data}=await db.auth.getSession(); // stay logged in after refresh
+    if(data.session)await enterApp(data.session.user);
+  }catch(e){}
+})();
 </script>
 </body>
 </html>
